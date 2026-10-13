@@ -1,5 +1,5 @@
 import { getLocation } from '../data/fixtures';
-import { RideDraft, RideStatus } from '../types/domain';
+import { Location, RideDraft, RideStatus } from '../types/domain';
 const transitions: Record<RideStatus, readonly RideStatus[]> = {
   DRAFT: ['SEARCHING', 'CANCELLED'],
   SEARCHING: ['MATCH_FOUND', 'NO_MATCH', 'CANCELLED', 'EXPIRED'],
@@ -41,11 +41,28 @@ export function departureFromDraft(draft: RideDraft): Date | undefined {
 export function validateDraft(
   draft: RideDraft,
   now = Date.now(),
+  customPlaces: Location[] = [],
 ): string | undefined {
-  if (!getLocation(draft.pickupId) || !getLocation(draft.destinationId)) {
+  if (
+    !getLocation(draft.pickupId, customPlaces) ||
+    !getLocation(draft.destinationId, customPlaces)
+  ) {
     return 'Choose a pickup and destination.';
   }
   if (draft.pickupId === draft.destinationId) {
+    return 'Pickup and destination must be different.';
+  }
+  const pickupPoint = getLocation(draft.pickupId, customPlaces)?.coordinate;
+  const destinationPoint = getLocation(
+    draft.destinationId,
+    customPlaces,
+  )?.coordinate;
+  if (
+    pickupPoint &&
+    destinationPoint &&
+    Math.abs(pickupPoint.latitude - destinationPoint.latitude) < 0.000001 &&
+    Math.abs(pickupPoint.longitude - destinationPoint.longitude) < 0.000001
+  ) {
     return 'Pickup and destination must be different.';
   }
   const departure = departureFromDraft(draft);

@@ -4,6 +4,7 @@ import { CarpoolGroup, RideRequest } from '../types/domain';
 import { Badge, Card, Copy, Heading, ui } from './ui';
 import { dateLabel, money, splitFare, statusLabel } from '../services/journey';
 import { vehicleOptions } from '../data/fixtures';
+import { PlaceAttribution } from './PlaceAttribution';
 export function RideSummary({
   ride,
   group,
@@ -22,6 +23,7 @@ export function RideSummary({
       <Copy small>
         {ride.pickup.name} → {ride.destination.name}
       </Copy>
+      <PlaceAttribution locations={[ride.pickup, ride.destination]} />
       {group && (
         <Copy small>
           {group.members.length} demo riders ·{' '}

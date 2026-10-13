@@ -6,6 +6,7 @@ import {
   RideDraft,
   RideRequest,
   Student,
+  Location,
 } from '../types/domain';
 import {
   canTransition,
@@ -30,6 +31,7 @@ export function initialDraft(now = new Date()): RideDraft {
   };
 }
 export const initialState = (): AppState => ({
+  customPlaces: [],
   profile: demoProfile,
   signedIn: false,
   draft: initialDraft(),
@@ -41,6 +43,11 @@ export const initialState = (): AppState => ({
   reports: [],
 });
 export type Action =
+  | {
+      type: 'SELECT_PLACE';
+      field: 'pickupId' | 'destinationId';
+      location: Location;
+    }
   | { type: 'SIGN_IN'; profile: Student }
   | { type: 'DRAFT'; patch: Partial<RideDraft> }
   | { type: 'SEARCH'; id: string; now: string }
@@ -114,6 +121,32 @@ export function appReducer(state: AppState, action: Action): AppState {
       error: undefined,
     };
   }
+  if (action.type === 'SELECT_PLACE') {
+    const location = action.location;
+    const point = location.coordinate;
+    if (
+      !location.id ||
+      !location.name.trim() ||
+      !point ||
+      !Number.isFinite(point.latitude) ||
+      Math.abs(point.latitude) > 90 ||
+      !Number.isFinite(point.longitude) ||
+      Math.abs(point.longitude) > 180 ||
+      !['google', 'pin'].includes(location.source ?? '') ||
+      getLocation(location.id)
+    ) {
+      return reject('Choose a valid place or map point.');
+    }
+    return {
+      ...state,
+      customPlaces: [
+        ...state.customPlaces.filter(item => item.id !== location.id),
+        location,
+      ],
+      draft: { ...state.draft, [action.field]: location.id },
+      error: undefined,
+    };
+  }
   if (action.type === 'SCENARIO') {
     return { ...state, scenario: action.scenario };
   }
@@ -121,7 +154,7 @@ export function appReducer(state: AppState, action: Action): AppState {
     return { ...state, notifications: action.enabled };
   }
   if (action.type === 'SAVE') {
-    return getLocation(action.locationId)
+    return getLocation(action.locationId, state.customPlaces)
       ? {
           ...state,
           savedPlaces: state.savedPlaces.includes(action.locationId)
@@ -154,12 +187,19 @@ export function appReducer(state: AppState, action: Action): AppState {
         'Resume or cancel your existing request before creating another.',
       );
     }
-    const error = validateDraft(state.draft, Date.parse(action.now));
+    const error = validateDraft(
+      state.draft,
+      Date.parse(action.now),
+      state.customPlaces,
+    );
     if (error) {
       return reject(error);
     }
-    const pickup = getLocation(state.draft.pickupId);
-    const destination = getLocation(state.draft.destinationId);
+    const pickup = getLocation(state.draft.pickupId, state.customPlaces);
+    const destination = getLocation(
+      state.draft.destinationId,
+      state.customPlaces,
+    );
     const departure = departureFromDraft(state.draft);
     if (!pickup || !destination || !departure) {
       return reject('Choose valid journey details.');

@@ -22,6 +22,7 @@ import {
   ui,
 } from '../components/ui';
 import { RouteMap } from '../components/RouteMap';
+import { JourneyMap } from '../components/JourneyMap';
 import { FareBreakdown, RideSummary } from '../components/RideSummary';
 import { newId, nowISO, useApp } from '../state/AppContext';
 import { quickMessages, vehicleOptions } from '../data/fixtures';
@@ -56,6 +57,9 @@ function useRide(rideId: string) {
   return { ...app, ride, group };
 }
 function pickupName(ride: RideRequest, group: CarpoolGroup) {
+  if (group.pickupMode === 'common' && ride.pickup.source) {
+    return ride.pickup.name;
+  }
   return group.pickupMode === 'common'
     ? ['campus', 'gate'].includes(ride.pickup.id)
       ? 'Campus main gate · meeting area'
@@ -326,7 +330,7 @@ export function GroupRideScreen({ route, navigation }: Props<'GroupRide'>) {
       <Kicker>Individual routes. Shared journey.</Kicker>
       <Title>Your carpool{'\n'}is together.</Title>
       <RideSummary ride={ride} group={group} />
-      <RouteMap start={pickupName(ride, group)} end={ride.destination.name} />
+      <JourneyMap pickup={ride.pickup} destination={ride.destination} />
       <Card>
         <Heading>{group.members.length} demo riders</Heading>
         <Riders members={group.members} detail="Joined" />
@@ -630,7 +634,7 @@ export function ActiveRideScreen({ route, navigation }: Props<'ActiveRide'>) {
         {active ? 'Together,\non your way.' : 'Your shared ride\nis ready.'}
       </Title>
       <RideSummary ride={ride} group={group} />
-      <RouteMap start={pickupName(ride, group)} end={ride.destination.name} />
+      <JourneyMap pickup={ride.pickup} destination={ride.destination} />
       <Card>
         <Heading>{group.booking.option.name} · demo</Heading>
         <Copy>Agreed pickup: {pickupName(ride, group)}</Copy>
@@ -679,7 +683,7 @@ export function CompletedScreen({ route, navigation }: Props<'Completed'>) {
     <Page back>
       <Kicker>Destination reached · demo complete</Kicker>
       <Title>Different routes.{'\n'}One good journey.</Title>
-      <RouteMap start="Shared journey" end={ride.destination.name} />
+      <JourneyMap pickup={ride.pickup} destination={ride.destination} compact />
       <Card>
         <Heading>{ride.destination.name}</Heading>
         <Copy>

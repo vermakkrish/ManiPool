@@ -94,7 +94,12 @@ export const demoMatchingService: MatchingService = {
       .slice(0, scenario === 'two-riders' ? 1 : 2)
       .map((student, index) => ({
         id: `${request.id}-${student.id}`,
-        student: { ...student, area: request.pickup.area },
+        student: {
+          ...student,
+          area: request.pickup.source
+            ? 'Near your selected pickup area (demo)'
+            : request.pickup.area,
+        },
         departure: new Date(
           Date.parse(request.departure) + index * 10 * 60000,
         ).toISOString(),

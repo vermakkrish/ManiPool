@@ -1,5 +1,13 @@
 # Verification record
 
+## Google Maps update (14 October 2026)
+
+Added native Android Google Maps, Places API (New) search, named custom pins, external directions and session-state integration. Local TypeScript and zero-warning lint passed; Jest passed 23 tests in 3 suites, and Metro generated the Android bundle with 20 assets. Six additional tests cover custom selection/saving/ride snapshots, invalid coordinates/built-in protection, duplicate coordinate rejection, reset and encoded directions URLs. Native map views/Places calls are mocked in renderer tests.
+
+Local native compilation was attempted using JDK 17 and the user's SDK at `C:/Android/Sdk`, but Gradle again failed before project compilation with `Unable to establish loopback connection`. Google Cloud billing/keys are not configured by this update; live map tiles, search results, native pin gestures and phone/emulator UI remain unverified for this version. See [Google Maps setup and device checklist](GOOGLE_MAPS.md). Native CI results will be recorded separately after completion.
+
+The installed npm graph reports 54 inherited advisories (49 high, 5 moderate). No forced framework downgrade was applied.
+
 Baseline: newly created public `vermakkrish/ManiPool`, clean `main`, initial commit `ef081fe99c6976e08495df86e98c09856aa5a872`, containing README and Node `.gitignore`. No application, dependency manifest, CI or baseline tests existed.
 
 ## Observed local results

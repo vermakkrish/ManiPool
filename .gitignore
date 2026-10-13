@@ -155,6 +155,7 @@ android/**/build/
 android/.cxx/
 android/**/.cxx/
 android/local.properties
+android/.idea/
 *.keystore
 *.jks
 *.apk

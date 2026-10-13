@@ -108,6 +108,6 @@ export const matchingConfig = {
     reliability: 0.05,
   },
 };
-export function getLocation(id: string) {
-  return locations.find(location => location.id === id);
+export function getLocation(id: string, customPlaces: Location[] = []) {
+  return [...locations, ...customPlaces].find(location => location.id === id);
 }
