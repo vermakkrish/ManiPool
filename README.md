@@ -11,14 +11,15 @@ This public repository is a fresh implementation based on the supplied project r
 - Brief splash, welcome, demo email entry and profile setup.
 - Exactly three main tabs: Home, Rides, Profile.
 - Shared ride form with searchable sample locations, native Android date/time pickers, validation, and Exact/±15/±30/±45 minute flexibility.
-- Warm cream/burgundy theme, outline icons, route logo and animated schematic maps without API keys.
+- Warm cream/burgundy theme, outline icons, route logo and schematic fallback without API keys.
+- Optional Android Google Maps, real Places search, named custom pins and external directions; see [Google Maps setup](docs/GOOGLE_MAPS.md).
 - Deterministic matching, no-match/retry/recovery controls, review and explicit mutual acceptance simulation.
 - Group formation, common/sequential pickup selection, local chat, quick messages and departure coordination.
 - Cab/auto capacity checks, exact fare splits, simulated booking confirmation, active ride and completion.
 - Ride history, saved places, local notification preference, local issue reports, confirmed departure/cancellation and reset.
 - Central state guards against invalid transitions, duplicate active requests, duplicate groups/messages and destructive group cancellation.
 
-**Demo boundary:** no real identity verification, GPS, geocoding, live riders, realtime messaging, driver tracking, provider booking, payment or push delivery. Sample prices/distances/detours are illustrative estimates. Reports are not sent to staff. State survives screen navigation but is in memory; a process restart clears it. Internet access is needed to install/build and for the development server, not for demo business services.
+**Demo boundary:** no real identity verification, GPS, live riders, realtime messaging, driver tracking, provider booking, payment or push delivery. Google Places search and map tiles are live services only when configured; sample landmarks and the core demo still work without keys. Sample prices/distances/detours are illustrative estimates. Reports are not sent to staff. State survives navigation in memory; a process restart clears it. Internet is needed for Google services and dependency installation.
 
 ## Prerequisites
 
@@ -51,7 +52,7 @@ Start an emulator in Android Studio's Device Manager (or connect a debugging-ena
 npm run android
 ```
 
-Open the **android/** folder in Android Studio for Gradle sync, native debugging or APK generation. The application ID is `com.mahecarpool`; its visible name is MAHE Carpool. No `.env` file or API credentials are required.
+Open the **android/** folder in Android Studio for Gradle sync, native debugging or APK generation. The application ID is `com.mahecarpool`; its visible name is MAHE Carpool. No credentials are required for the core demo. Optional Google Maps/Places needs restricted Android keys in ignored `android/local.properties` and a native rebuild; follow [the complete setup instructions](docs/GOOGLE_MAPS.md).
 
 Build a debug APK without launching a device:
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Switch, View } from 'react-native';
+import { Alert, Linking, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   NativeStackNavigationProp,
@@ -286,6 +286,39 @@ export function HelpScreen({
         </Copy>
       </Card>
       <Heading>Report a demo issue</Heading>
+      <Card>
+        <Heading>Google Maps and your searches</Heading>
+        <Copy small muted>
+          When configured, place searches are sent to Google. Selected places
+          and map pins remain in memory for this session. No GPS permission or
+          background tracking is used. Google Maps directions open externally.
+        </Copy>
+        <Button
+          secondary
+          label="Google Maps terms"
+          onPress={() => {
+            Linking.openURL('https://maps.google.com/help/terms_maps/').catch(
+              () =>
+                Alert.alert(
+                  'Could not open link',
+                  'Check your browser and internet connection.',
+                ),
+            );
+          }}
+        />
+        <Button
+          secondary
+          label="Google privacy policy"
+          onPress={() => {
+            Linking.openURL('https://policies.google.com/privacy').catch(() =>
+              Alert.alert(
+                'Could not open link',
+                'Check your browser and internet connection.',
+              ),
+            );
+          }}
+        />
+      </Card>
       {ride && (
         <Copy muted>
           Journey: {ride.destination.name} · {dateLabel(ride.departure)}

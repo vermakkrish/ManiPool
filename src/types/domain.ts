@@ -25,6 +25,10 @@ export interface Location {
   area: string;
   kind: 'campus' | 'metro' | 'airport' | 'railway' | 'city' | 'bus';
   corridor: string;
+  coordinate?: { latitude: number; longitude: number };
+  placeId?: string;
+  source?: 'google' | 'pin';
+  attributions?: string[];
 }
 export interface RideDraft {
   pickupId: string;
@@ -92,6 +96,7 @@ export interface DemoReport {
   timestamp: string;
 }
 export interface AppState {
+  customPlaces: Location[];
   profile: Student;
   signedIn: boolean;
   draft: RideDraft;

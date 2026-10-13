@@ -2,6 +2,18 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// Local Android SDK keys never enter JavaScript or tracked configuration.
+def localConfig = new Properties()
+def localConfigFile = rootProject.file('local.properties')
+if (localConfigFile.exists()) {
+    localConfigFile.withInputStream { localConfig.load(it) }
+}
+def mapsKey = localConfig.getProperty('GOOGLE_MAPS_API_KEY', System.getenv('GOOGLE_MAPS_API_KEY') ?: '').trim()
+def placesKey = localConfig.getProperty('GOOGLE_PLACES_API_KEY', System.getenv('GOOGLE_PLACES_API_KEY') ?: mapsKey).trim()
+if (![mapsKey, placesKey].every { it == '' || it ==~ /[A-Za-z0-9_-]+/ }) {
+    throw new GradleException('Maps keys must contain only letters, numbers, underscores and hyphens.')
+}
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -84,6 +96,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders.googleMapsApiKey = mapsKey
+        buildConfigField 'boolean', 'GOOGLE_MAPS_ENABLED', (!mapsKey.isEmpty()).toString()
+        buildConfigField 'String', 'GOOGLE_PLACES_API_KEY', '"' + placesKey + '"'
     }
     buildTypes {
         debug {
@@ -97,6 +112,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.google.android.libraries.places:places:5.3.0'
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 

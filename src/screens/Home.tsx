@@ -26,7 +26,10 @@ import {
   Title,
   ui,
 } from '../components/ui';
-import { RouteLogo, RouteMap } from '../components/RouteMap';
+import { RouteLogo } from '../components/RouteMap';
+import { JourneyMap } from '../components/JourneyMap';
+import { PlacePicker } from '../components/PlacePicker';
+import { PlaceAttribution } from '../components/PlaceAttribution';
 import { RideSummary } from '../components/RideSummary';
 import { getLocation, locations } from '../data/fixtures';
 import { newId, nowISO, useApp } from '../state/AppContext';
@@ -85,7 +88,7 @@ export function JourneyForm() {
       );
       return;
     }
-    const validation = validateDraft(draft);
+    const validation = validateDraft(draft, Date.now(), state.customPlaces);
     setError(validation);
     if (validation) {
       return;
@@ -98,19 +101,31 @@ export function JourneyForm() {
     <Card>
       <Choice
         icon={MapPin}
-        label={getLocation(draft.pickupId)?.name ?? 'Choose pickup'}
-        detail="Pickup · demo landmark"
+        label={
+          getLocation(draft.pickupId, state.customPlaces)?.name ??
+          'Choose pickup'
+        }
+        detail="Pickup location"
         onPress={() =>
           navigation.navigate('LocationSearch', { field: 'pickupId' })
         }
       />
       <Choice
         icon={Navigation}
-        label={getLocation(draft.destinationId)?.name ?? 'Choose destination'}
+        label={
+          getLocation(draft.destinationId, state.customPlaces)?.name ??
+          'Choose destination'
+        }
         detail="Where are you headed?"
         onPress={() =>
           navigation.navigate('LocationSearch', { field: 'destinationId' })
         }
+      />
+      <PlaceAttribution
+        locations={[
+          getLocation(draft.pickupId, state.customPlaces)!,
+          getLocation(draft.destinationId, state.customPlaces)!,
+        ].filter(Boolean)}
       />
       <Row>
         <View style={ui.flex}>
@@ -173,7 +188,7 @@ export function HomeScreen() {
       <JourneyForm />
       <Heading>Campus favourites</Heading>
       <Row wrap>
-        {locations
+        {[...locations, ...state.customPlaces]
           .filter(location =>
             ['airport', 'metro', 'railway'].includes(location.id),
           )
@@ -206,8 +221,8 @@ export function HomeScreen() {
         </>
       )}
       <Copy small muted>
-        Sample people, locations and estimates. No live location or provider
-        connection.
+        Sample people and estimates. Places can come from Google; no live
+        tracking or provider connection.
       </Copy>
     </Page>
   );
@@ -233,7 +248,7 @@ export function LocationSearchScreen({
   const { state, dispatch } = useApp();
   const navigation = useNavigation<NativeStackNavigationProp<RootParams>>();
   const [query, setQuery] = useState('');
-  const options = locations.filter(
+  const options = [...locations, ...state.customPlaces].filter(
     location =>
       (!route.params.savedOnly || state.savedPlaces.includes(location.id)) &&
       `${location.name} ${location.area}`
@@ -242,7 +257,7 @@ export function LocationSearchScreen({
   );
   return (
     <Page back>
-      <Kicker>Demo landmarks</Kicker>
+      <Kicker>Places and pickup points</Kicker>
       <Title>
         {route.params.savedOnly
           ? 'Saved places'
@@ -250,11 +265,25 @@ export function LocationSearchScreen({
           ? 'Choose your pickup'
           : 'Choose a destination'}
       </Title>
+      {!route.params.savedOnly && (
+        <PlacePicker
+          onSelect={location => {
+            dispatch({
+              type: 'SELECT_PLACE',
+              field: route.params.field,
+              location,
+            });
+            navigation.goBack();
+          }}
+        />
+      )}
+      <Heading>Sample and saved places</Heading>
       <Copy muted>
-        Search our local sample list. No GPS or geocoding permissions needed.
+        Filter your local list below. Custom places are stored for this session.
+        No GPS permission is needed.
       </Copy>
       <TextInput
-        accessibilityLabel="Search demo locations"
+        accessibilityLabel="Search local places"
         placeholder="Search campus, airport, metro…"
         value={query}
         onChangeText={setQuery}
@@ -287,6 +316,7 @@ export function LocationSearchScreen({
               navigation.goBack();
             }}
           />
+          <PlaceAttribution locations={[location]} />
           <Button
             secondary
             label={
@@ -300,7 +330,7 @@ export function LocationSearchScreen({
       ))}
       {!options.length && (
         <Copy muted>
-          No demo places found. Try a broader search or save a place from the
+          No local places found. Try a broader search or save a place from the
           full list.
         </Copy>
       )}
@@ -326,17 +356,24 @@ const uiInput = {
 export function MapPreviewScreen() {
   const { state } = useApp();
   const navigation = useNavigation<NativeStackNavigationProp<RootParams>>();
+  const pickup = getLocation(state.draft.pickupId, state.customPlaces);
+  const destination = getLocation(
+    state.draft.destinationId,
+    state.customPlaces,
+  );
   return (
     <Page back>
       <Kicker>Connected routes</Kicker>
       <Title>Your journey,{'\n'}in perspective.</Title>
-      <RouteMap
-        start={getLocation(state.draft.pickupId)?.name}
-        end={getLocation(state.draft.destinationId)?.name}
-      />
+      {pickup && destination ? (
+        <JourneyMap pickup={pickup} destination={destination} />
+      ) : (
+        <Copy>Choose a pickup and destination to preview your journey.</Copy>
+      )}
       <Copy muted>
-        This illustration shows the idea of converging pickups. It is not a
-        navigable map or a measured road route.
+        Review your selected locations or open driving directions. Demo riders,
+        detours and fares are simulated; no real road matching or tracking is
+        performed.
       </Copy>
       <Button
         secondary
